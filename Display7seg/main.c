@@ -5,65 +5,45 @@
  */ 
 
 
-#define F_CPU 16000000UL
-#include "avr/io.h"
-#include "util/delay.h"
-#define SET_BIT(p,bit)  ((p)|=(1<<(bit)))
-#define CLR_BIT(p,bit)  ((p)&=~(1<<(bit)))
-#define TST_BIT(p,bit)  ((p)&(1<<(bit)))
-#define CPL_BIT(p,bit)  ((p)^=(1<<(bit)))
-int x = 0;
+
+#define F_CPU 16000000UL	//define a frequencia do microcontrolador - 16MHz
+#include <avr/io.h> 	    //definições do componente especificado
+#include <util/delay.h>		//biblioteca para o uso das rotinas de _delay_ms e _delay_us()
+#define	set_bit(y,bit)	(y|=(1<<bit))	//coloca em 1 o bit x da variável Y
+#define	clr_bit(y,bit)	(y&=~(1<<bit))	//coloca em 0 o bit x da variável Y
+#define cpl_bit(y,bit) 	(y^=(1<<bit))	//troca o estado lógico do bit x da variável Y
+#define tst_bit(y,bit) 	(y&(1<<bit))	//retorna 0 ou 1 conforme leitura do bit
+const unsigned char ScanBytes[]= {0b11111110, 0b11111101, 0b11111011, 0b11110111};
+unsigned char PadDigits[4] [4] =   {{0x40, 0x79, 0x24, 0x30},
+									{0x19, 0x12, 0x02, 0x78},
+									{0x00, 0x18, 0x08, 0x03},
+									{0x46, 0x21, 0x06, 0x0E}};
 
 int main(void)
 {
-	DDRD  = 0xFF;
-	PORTD = 0xFF;
-	DDRC  = 0xFF;
-	PORTC = 0xFF;
-	DDRB  = 0x00;
-	PORTB = 0xFF;
-    while(1)
-    {
-			CLR_BIT(PORTC, 0);
-			if (TST_BIT(PINB, PB0)==0){
-			PORTD = 0x79;}
-			if (TST_BIT(PINB, PB1)==0){
-			PORTD = 0x24;}
-			if (TST_BIT(PINB, PB2)==0){
-			PORTD = 0x30;}
-			SET_BIT(PORTC, 0);
-			_delay_ms(50);
-			CLR_BIT(PORTC, 1);
-			if (TST_BIT(PINB, PB0)==0){
-			PORTD = 0x19;}
-			if (TST_BIT(PINB, PB1)==0){
-			PORTD = 0x12;}
-			if (TST_BIT(PINB, PB2)==0){
-			PORTD = 0x02;}
-			SET_BIT(PORTC, 1);
-			_delay_ms(50);
-			CLR_BIT(PORTC, 2);
-			if (TST_BIT(PINB, PB0)==0){
-			PORTD = 0x78;}
-			if (TST_BIT(PINB, PB1)==0){
-			PORTD = 0x00;}
-			if (TST_BIT(PINB, PB2)==0){
-			PORTD = 0x18;}
-			SET_BIT(PORTC, 2);
-			_delay_ms(50);
-			CLR_BIT(PORTC, 3);
-			if (TST_BIT(PINB, PB0)==0){
-			PORTD = 0x08;}
-			if (TST_BIT(PINB, PB1)==0){
-			PORTD = 0x40;}
-			if (TST_BIT(PINB, PB2)==0){
-			PORTD = 0x;}
-			SET_BIT(PORTC, 3);
-			_delay_ms(50);
-			
-					
+	int x = 0;
+	int y = 0;
+	DDRB  = 0xFF;	//Conigura como saida
+	DDRD  = 0xFF;	//Conigura como saida
+	DDRC  = 0x00;	//Conigura como entrada
+	PORTC = 0xFF;	//Habilita o pull up do port B
+	
+	
+	while(1)
+	{
+		for (x=0;x<4;x++)
+		{
+			PORTD = ScanBytes[x]; // Mudo o estado da saida do port para valor em scanbytes
+			for (y=0;y<4;y++)
+			{
+				if (tst_bit(PINC, y)==0)
+				{
+					PORTB = PadDigits[x][y];
+				}
+			}
+		}
+		
 
 	}
-		
+	
 }
-
